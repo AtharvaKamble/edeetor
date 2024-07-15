@@ -4,19 +4,29 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Editor</title>
-
+        <link rel="stylesheet" href="index.css" type="text/css" />
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body class="flex">
+    <body class="flex py-4">
         <div class="mx-auto">
-            <h1>yeeh</h1>
+            <h1 class="font-medium">The Yeeh Editor</h1>
             <div class="flex flex-col">
-                <textarea id="editor-textarea" placeholder=""></textarea>
+                <textarea
+                    id="editor-textarea"
+                    placeholder=""
+                    class="mt-2 h-[600px] w-[900px] editor-font outline-none bg-gray-50 p-2"
+                    spellcheck="false"
+                ></textarea>
+                <div
+                    id="cmd"
+                    class="w-full mt-2 h-32 bg-stone-900 p-2 text-lime-500 rounded font-mono"
+                ></div>
                 <button
-                    class="p-3 bg-blue-900 mt-2 rounded-sm text-white hover:bg-blue-700"
+                    id="btn-run"
+                    class="p-2 bg-blue-900 mt-2 rounded text-white hover:bg-blue-700 min-w-[60%] mx-auto"
                     onclick="run(document.getElementById('editor-textarea'));"
                 >
-                    Run
+                    Run <code>(Ctrl + ')</code>
                 </button>
             </div>
         </div>
