@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
+
+	"github.com/rs/cors"
 )
 
 const (
@@ -14,10 +17,6 @@ const (
 
 type handler struct {
 	// gateway
-}
-
-type Resp struct {
-	code string
 }
 
 func NewHTTPHandler() *handler {
@@ -32,29 +31,41 @@ func (h *handler) HTTPInit() {
 
 	fmt.Printf("Listening on http://localhost%s for connections\n", PORT)
 
-	if err := http.ListenAndServe(PORT, mux); err != nil {
+	handler := cors.Default().Handler(mux)
+	if err := http.ListenAndServe(PORT, handler); err != nil {
 		log.Fatalf("There was an error in HTTPInit: %s", err)
 	}
 }
 
 func (h *handler) HandleGo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	// w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	// w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
 	var body map[string]string
 
 	err := json.NewDecoder(r.Body).Decode(&body)
+	check("Error in decoding JSON", err)
+
+	f, err := os.Create("file.go")
+	check("Error opening Go file", err)
+	defer os.Remove(f.Name())
+
+	err = os.WriteFile(f.Name(), []byte(body["code"]), 0666)
+	check("Error in writing to file", err)
+
+	out, _ := exec.Command("go", "run", f.Name()).CombinedOutput()
+
+	cmdOut := string(out[:])
+
+	w.Write([]byte(cmdOut))
+
+}
+
+func check(msg string, err error) {
 	if err != nil {
-		log.Fatalf("Error in decoding JSON: %s\n", err)
+		log.Fatalf("%s: %s\n", msg, err)
 	}
-
-	fmt.Println(body["code"])
-
-	out, err := exec.Command("ls").Output()
-
-	if err != nil {
-		log.Fatalf("There was an error executing Go code: %s\n", err)
-	}
-
-	fmt.Println(string(out[:]))
-
 }
 
 func (h *handler) CheckHealth(w http.ResponseWriter, r *http.Request) {
